@@ -5,7 +5,7 @@ namespace MyOtusProject;
 
 class Program
 {
-    static List<string> booksForRead = new List<string>();
+    static List<string> tasksForDoing = new List<string>();
     static int maxTaskCount;
     static int maxTaskLength;
 
@@ -24,9 +24,9 @@ class Program
 
         return number;
     }
-    public static void AddBook()
+    public static void AddTask()
     {
-        if (booksForRead.Count >= maxTaskCount)
+        if (tasksForDoing.Count >= maxTaskCount)
             throw new TaskCountLimitException(maxTaskCount);
 
         Console.WriteLine("Введите через запятую: название книги, имя и фамилию автора, количество страниц.");
@@ -36,44 +36,44 @@ class Program
         if (task.Length > maxTaskLength)
             throw new TaskLengthLimitException(task.Length, maxTaskLength);
 
-        if (booksForRead.Contains(task))
+        if (tasksForDoing.Contains(task))
             throw new DuplicateTaskException(task);
 
-        booksForRead.Add(task);
+        tasksForDoing.Add(task);
         Console.WriteLine($"Книга '{task}' добавлена в список.");
     }
 
-    public static void ShowBooksList()
+    public static void ShowTasksList()
     {
-        if (booksForRead.Count == 0)
+        if (tasksForDoing.Count == 0)
         {
             Console.WriteLine("Вы ещё не добавили книг в список.");
         }
         else
         {
             Console.WriteLine("\nСписок книг, которые хочу прочитать:");
-            for (int i = 0; i < booksForRead.Count; i++)
-                Console.WriteLine($"{i + 1}. {booksForRead[i]}");
+            for (int i = 0; i < tasksForDoing.Count; i++)
+                Console.WriteLine($"{i + 1}. {tasksForDoing[i]}");
         }
     }
 
-    public static void DeleteBook()
+    public static void DeleteTask()
     {
-        ShowBooksList();
+        ShowTasksList();
 
-        if (booksForRead.Count == 0)
+        if (tasksForDoing.Count == 0)
             return;
 
         Console.WriteLine("Введите номер книги для удаления:");
-        int numberOfBook;
+        int numberOfTask;
 
-        bool isNumber = int.TryParse(Console.ReadLine(), out numberOfBook);
+        bool isNumber = int.TryParse(Console.ReadLine(), out numberOfTask);
 
-        if (isNumber && numberOfBook > 0 && numberOfBook <= booksForRead.Count)
+        if (isNumber && numberOfTask > 0 && numberOfTask <= tasksForDoing.Count)
         {
-            string removedBook = booksForRead[numberOfBook - 1];
-            booksForRead.RemoveAt(numberOfBook - 1);
-            Console.WriteLine($"Книга '{removedBook}' удалена из списка.");
+            string removedTask = tasksForDoing[numberOfTask - 1];
+            tasksForDoing.RemoveAt(numberOfTask - 1);
+            Console.WriteLine($"Книга '{removedTask}' удалена из списка.");
         }
         else
         {
@@ -158,15 +158,15 @@ class Program
                             ReturnMenu();
                             break;
                         case "/addtask":
-                            AddBook();
+                            AddTask();
                             ReturnMenu();
                             break;
                         case "/showtasks":
-                            ShowBooksList();
+                            ShowTasksList();
                             ReturnMenu();
                             break;
                         case "/removetask":
-                            DeleteBook();
+                            DeleteTask();
                             ReturnMenu();
                             break;
                         case "/exit":
