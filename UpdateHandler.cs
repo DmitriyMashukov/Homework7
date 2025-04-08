@@ -33,9 +33,6 @@ namespace MyOtusProject
                 "зарегистрироватся в приложении, введя своё имя." +
                 "\n /help - Команда со справочной информацией по работе с приложением." +
                 "\n /info - Предоставляет информацию о версии программы и дате её создания." +
-                "\n /echo - При вводе этой команды с аргументом (например, Hello), программа " +
-                "возвращает введенный текст (в данном примере \"Hello\"). Становится доступной только " +
-                "после ввода имени." +
                 "\n /addtask - Позволяет добавить новую книгу в список." +
                 "\n /showtasks - Отображает список всех добавленных книг." +
                 "\n /removetask - Позволяет удалять книги по номеру в списке." +
@@ -119,16 +116,6 @@ namespace MyOtusProject
                     case "/info":
                         botClient.SendMessage(chat, "Версия программы 1.0. Дата создания: 26.02.2025");
                         break;
-                    case "/echo":
-                        if (string.IsNullOrEmpty(_name))
-                        {
-                            botClient.SendMessage(chat, "Чтобы активировать эту команду введите своё имя.");
-                            break;
-                        }
-                        botClient.SendMessage(chat, "Введите аргумент:");
-                        var arg = Console.ReadLine();
-                        botClient.SendMessage(chat, arg);
-                        break;
                     case "/addtask":
                         AddTask(botClient, chat);
                         break;
@@ -147,10 +134,6 @@ namespace MyOtusProject
                             _name = input;
                             botClient.SendMessage(chat, $"Имя {_name} успешно установлено.");
                         }
-                        else if (!string.IsNullOrEmpty(_name) && !input.StartsWith("/"))
-                        {
-                            botClient.SendMessage(chat, input);
-                        }
                         else
                         {
                             if (string.IsNullOrEmpty(_name))
@@ -161,7 +144,7 @@ namespace MyOtusProject
                             else
                             {
                                 botClient.SendMessage(chat, $"Приветствую, {_name}! Чем могу помочь?" +
-                                    "\n/start \n/help \n/info \n/echo \n/addtask \n/showtasks \n/removetask \n/exit");
+                                    "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/exit");
                             }
                         }
                         break;
