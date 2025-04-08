@@ -14,7 +14,6 @@ namespace MyOtusProject
         private List<string> _tasksForDoing = new List<string>();
         private int _maxTaskCount;
         private int _maxTaskLength;
-        private string _name = "";
 
         public UpdateHandler(int maxTaskCount, int maxTaskLength)
         {
@@ -108,7 +107,6 @@ namespace MyOtusProject
                 switch (input)
                 {
                     case "/start":
-                        botClient.SendMessage(chat, "Пожалуйста, введите ваше имя:");
                         break;
                     case "/help":
                         DescriptionOfHelp(botClient, chat);
@@ -129,24 +127,8 @@ namespace MyOtusProject
                         botClient.SendMessage(chat, "Завершение работы программы.");
                         break;
                     default:
-                        if (string.IsNullOrEmpty(_name) && !input.StartsWith("/"))
-                        {
-                            _name = input;
-                            botClient.SendMessage(chat, $"Имя {_name} успешно установлено.");
-                        }
-                        else
-                        {
-                            if (string.IsNullOrEmpty(_name))
-                            {
-                                botClient.SendMessage(chat, $"Приветствую, пользователь! Список доступных команд:" +
-                                    "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/exit");
-                            }
-                            else
-                            {
-                                botClient.SendMessage(chat, $"Приветствую, {_name}! Чем могу помочь?" +
-                                    "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/exit");
-                            }
-                        }
+                        botClient.SendMessage(chat, $"Приветствую, пользователь! Список доступных команд:" +
+                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/exit");
                         break;
                 }
             }
