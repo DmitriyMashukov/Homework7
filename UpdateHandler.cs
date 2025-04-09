@@ -14,11 +14,13 @@ namespace MyOtusProject
         private List<string> _tasksForDoing = new List<string>();
         private int _maxTaskCount;
         private int _maxTaskLength;
+        private IUserService _userService;
 
-        public UpdateHandler(int maxTaskCount, int maxTaskLength)
+        public UpdateHandler(int maxTaskCount, int maxTaskLength, IUserService userService)
         {
             _maxTaskCount = maxTaskCount;
             _maxTaskLength = maxTaskLength;
+            _userService = userService;
         }
         private static void ValidateString(string? str)
         {
@@ -103,10 +105,22 @@ namespace MyOtusProject
 
                 var chat = message.Chat;
                 var input = message.Text;
+                var user = message.From;
+
+                var existingUser = _userService.GetUser(user.Id);
+
+                if (existingUser == null && input != "/start")
+                {
+                    botClient.SendMessage(chat, "Для использования приложения необходимо зарегистрироваться. " +
+                        "Введите команду /start \nСписок доступных команд:\n/start \n/help \n/info");
+                    return;
+                }
 
                 switch (input)
                 {
                     case "/start":
+                        var registeredUser = _userService.RegisterUser(user.Id, user.Username ?? "Unknown");
+                        botClient.SendMessage(chat, $"Добро пожаловать, {registeredUser.TelegramUserName}! Вы успешно зарегистрированы.");
                         break;
                     case "/help":
                         DescriptionOfHelp(botClient, chat);
@@ -127,7 +141,7 @@ namespace MyOtusProject
                         botClient.SendMessage(chat, "Завершение работы программы.");
                         break;
                     default:
-                        botClient.SendMessage(chat, $"Приветствую, пользователь! Список доступных команд:" +
+                        botClient.SendMessage(chat, $"Приветствую, {existingUser.TelegramUserName}! Список доступных команд:" +
                                 "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/exit");
                         break;
                 }
