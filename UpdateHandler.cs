@@ -11,7 +11,7 @@ namespace MyOtusProject
 {
     internal class UpdateHandler : IUpdateHandler
     {
-        private List<string> _tasksForDoing = new List<string>();
+        private List<ToDoItem> _tasksForDoing = new List<ToDoItem>();
         private int _maxTaskCount;
         private int _maxTaskLength;
         private IUserService _userService;
@@ -46,17 +46,25 @@ namespace MyOtusProject
                 throw new TaskCountLimitException(_maxTaskCount);
 
             botClient.SendMessage(chat, "Введите через запятую: название книги, имя и фамилию автора, количество страниц.");
-            string task = Console.ReadLine();
-            ValidateString(task);
+            string taskName = Console.ReadLine();
+            ValidateString(taskName);
 
-            if (task.Length > _maxTaskLength)
-                throw new TaskLengthLimitException(task.Length, _maxTaskLength);
+            if (taskName.Length > _maxTaskLength)
+                throw new TaskLengthLimitException(taskName.Length, _maxTaskLength);
 
-            if (_tasksForDoing.Contains(task))
-                throw new DuplicateTaskException(task);
+            foreach (var task in _tasksForDoing)
+            {
+                if (task.Name == taskName)
+                    throw new DuplicateTaskException(taskName);
+            }
 
-            _tasksForDoing.Add(task);
-            botClient.SendMessage(chat, $"Книга '{task}' добавлена в список.");
+            var newTask = new ToDoItem
+            {
+                Name = taskName
+            };
+
+            _tasksForDoing.Add(newTask);
+            botClient.SendMessage(chat, $"Книга '{taskName}' добавлена в список.");
         }
 
         private void ShowTasksList(ITelegramBotClient botClient, Chat chat)
@@ -69,7 +77,12 @@ namespace MyOtusProject
             {
                 botClient.SendMessage(chat, "\nСписок книг, которые хочу прочитать:");
                 for (int i = 0; i < _tasksForDoing.Count; i++)
-                    botClient.SendMessage(chat, $"{i + 1}. {_tasksForDoing[i]}");
+                {
+                    var task = _tasksForDoing[i];
+                    var status = task.State == ToDoItemState.Active ? "[Активна]" : "[Завершена]";
+
+                    botClient.SendMessage(chat, $"{i + 1}. {status} {task.Name} (добавлена {task.CreatedAt:g})");
+                }     
             }
         }
         public void DeleteTask(ITelegramBotClient botClient, Chat chat)
@@ -86,7 +99,7 @@ namespace MyOtusProject
 
             if (isNumber && numberOfTask > 0 && numberOfTask <= _tasksForDoing.Count)
             {
-                string removedTask = _tasksForDoing[numberOfTask - 1];
+                string removedTask = _tasksForDoing[numberOfTask - 1].Name;
                 _tasksForDoing.RemoveAt(numberOfTask - 1);
                 botClient.SendMessage(chat, $"Книга '{removedTask}' удалена из списка.");
             }
