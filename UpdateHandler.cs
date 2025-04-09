@@ -69,19 +69,18 @@ namespace MyOtusProject
 
         private void ShowTasksList(ITelegramBotClient botClient, Chat chat)
         {
-            if (_tasksForDoing.Count == 0)
+            var activeTasks = _tasksForDoing.Where(t => t.State == ToDoItemState.Active).ToList();
+            if (activeTasks.Count == 0)
             {
-                botClient.SendMessage(chat, "Вы ещё не добавили книг в список.");
+                botClient.SendMessage(chat, "Книг, которые вы читаете в данный момент нет.");
             }
             else
             {
-                botClient.SendMessage(chat, "\nСписок книг, которые хочу прочитать:");
-                for (int i = 0; i < _tasksForDoing.Count; i++)
+                botClient.SendMessage(chat, "\nСписок книг, которые вы читаете сейчас:");
+                for (int i = 0; i < activeTasks.Count; i++)
                 {
-                    var task = _tasksForDoing[i];
-                    var status = task.State == ToDoItemState.Active ? "[Активна]" : "[Завершена]";
-
-                    botClient.SendMessage(chat, $"{i + 1}. {status} {task.Name} (добавлена {task.CreatedAt:g})");
+                    var task = activeTasks[i];
+                    botClient.SendMessage(chat, $"{i + 1}. {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
                 }     
             }
         }
