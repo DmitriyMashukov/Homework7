@@ -10,7 +10,7 @@ namespace MyOtusProject
     internal class ToDoItem
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public User User { get; set; }
+        public Guid UserId { get; set; }
         public string Name { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public ToDoItemState State { get; set; } = ToDoItemState.Active;

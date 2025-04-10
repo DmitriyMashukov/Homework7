@@ -11,16 +11,14 @@ namespace MyOtusProject
 {
     internal class UpdateHandler : IUpdateHandler
     {
-        private List<ToDoItem> _tasksForDoing = new List<ToDoItem>();
-        private int _maxTaskCount;
-        private int _maxTaskLength;
-        private IUserService _userService;
 
-        public UpdateHandler(int maxTaskCount, int maxTaskLength, IUserService userService)
+        private IUserService _userService;
+        private IToDoService _toDoService;
+
+        public UpdateHandler(IUserService userService, IToDoService toDoService)
         {
-            _maxTaskCount = maxTaskCount;
-            _maxTaskLength = maxTaskLength;
             _userService = userService;
+            _toDoService = toDoService;
         }
         private static void ValidateString(string? str)
         {
@@ -31,45 +29,22 @@ namespace MyOtusProject
         {
             var text = new StringBuilder("Краткая информация о том, как пользоваться программой:" +
                 "\n /start - Команда для начала работы с приложением. С помощью неё вы можете " +
-                "зарегистрироватся в приложении, введя своё имя." +
+                "зарегистрироватся в приложении." +
                 "\n /help - Команда со справочной информацией по работе с приложением." +
                 "\n /info - Предоставляет информацию о версии программы и дате её создания." +
-                "\n /addtask - Позволяет добавить новую книгу в список." +
+                "\n /addtask - Позволяет добавить новую книгу в список. Для добавления книги напишите команду" +
+                " и через пробел укажите название книги, имя и фамилию автора и количество страниц." +
                 "\n /showtasks - Отображает список всех добавленных книг." +
-                "\n /removetask - Позволяет удалять книги по номеру в списке." +
+                "\n /removetask - Позволяет удалять книги по номеру в списке. Для удаления необходимо написать" +
+                " команду и через пробел указать номер книги, которую хотите удалить." +
                 "\n /exit - Команда для завершения работы приложения.");
             botClient.SendMessage(chat, text.ToString());
         }
-        public void AddTask(ITelegramBotClient botClient, Chat chat)
+
+        private void ShowTasksList(ITelegramBotClient botClient, Chat chat, ToDoUser user)
         {
-            if (_tasksForDoing.Count >= _maxTaskCount)
-                throw new TaskCountLimitException(_maxTaskCount);
+            var activeTasks = _toDoService.GetActiveByUserId(user.UserId);
 
-            botClient.SendMessage(chat, "Введите через запятую: название книги, имя и фамилию автора, количество страниц.");
-            string taskName = Console.ReadLine();
-            ValidateString(taskName);
-
-            if (taskName.Length > _maxTaskLength)
-                throw new TaskLengthLimitException(taskName.Length, _maxTaskLength);
-
-            foreach (var task in _tasksForDoing)
-            {
-                if (task.Name == taskName)
-                    throw new DuplicateTaskException(taskName);
-            }
-
-            var newTask = new ToDoItem
-            {
-                Name = taskName
-            };
-
-            _tasksForDoing.Add(newTask);
-            botClient.SendMessage(chat, $"Книга '{taskName}' добавлена в список.");
-        }
-
-        private void ShowTasksList(ITelegramBotClient botClient, Chat chat)
-        {
-            var activeTasks = _tasksForDoing.Where(t => t.State == ToDoItemState.Active).ToList();
             if (activeTasks.Count == 0)
             {
                 botClient.SendMessage(chat, "Книг, которые вы читаете в данный момент нет.");
@@ -82,29 +57,6 @@ namespace MyOtusProject
                     var task = activeTasks[i];
                     botClient.SendMessage(chat, $"{i + 1}. {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
                 }     
-            }
-        }
-        public void DeleteTask(ITelegramBotClient botClient, Chat chat)
-        {
-            ShowTasksList(botClient, chat);
-
-            if (_tasksForDoing.Count == 0)
-                return;
-
-            botClient.SendMessage(chat, "Введите номер книги для удаления:");
-            int numberOfTask;
-
-            bool isNumber = int.TryParse(Console.ReadLine(), out numberOfTask);
-
-            if (isNumber && numberOfTask > 0 && numberOfTask <= _tasksForDoing.Count)
-            {
-                string removedTask = _tasksForDoing[numberOfTask - 1].Name;
-                _tasksForDoing.RemoveAt(numberOfTask - 1);
-                botClient.SendMessage(chat, $"Книга '{removedTask}' удалена из списка.");
-            }
-            else
-            {
-                botClient.SendMessage(chat, "Данного номера книги нет в списке.");
             }
         }
 
@@ -121,7 +73,7 @@ namespace MyOtusProject
 
                 var existingUser = _userService.GetUser(user.Id);
 
-                if (existingUser == null && input != "/start")
+                if (existingUser == null && input != "/start" && input != "/help" && input != "/info")
                 {
                     botClient.SendMessage(chat, "Для использования приложения необходимо зарегистрироваться. " +
                         "Введите команду /start \nСписок доступных команд:\n/start \n/help \n/info");
@@ -140,14 +92,41 @@ namespace MyOtusProject
                     case "/info":
                         botClient.SendMessage(chat, "Версия программы 1.0. Дата создания: 26.02.2025");
                         break;
-                    case "/addtask":
-                        AddTask(botClient, chat);
+                    case string s when s.StartsWith("/addtask "):
+                        if (existingUser == null) return;
+
+                        var taskName = input.Substring("/addtask ".Length).Trim();
+                        ValidateString(taskName);
+
+                        var newTask = _toDoService.Add(existingUser, taskName);
+                        botClient.SendMessage(chat, $"Книга '{newTask.Name}' добавлена в список.");
                         break;
                     case "/showtasks":
-                        ShowTasksList(botClient, chat);
+                        if (existingUser != null)
+                            ShowTasksList(botClient, chat, existingUser);
                         break;
-                    case "/removetask":
-                        DeleteTask(botClient, chat);
+                    case string s when s.StartsWith("/removetask "):
+                        if (existingUser == null) return;
+
+                        var inputNumber = input.Substring("/removetask ".Length).Trim();
+                        if (int.TryParse(inputNumber, out int taskNumber))
+                        {
+                            var activeTasks = _toDoService.GetActiveByUserId(existingUser.UserId).ToList();
+                            if (taskNumber > 0 && taskNumber <= activeTasks.Count)
+                            {
+                                var taskToRemove = activeTasks[taskNumber - 1];
+                                _toDoService.Delete(taskToRemove.Id);
+                                botClient.SendMessage(chat, $"Книга '{taskToRemove.Name}' удалена из списка.");
+                            }
+                            else
+                            {
+                                botClient.SendMessage(chat, "Данного номера книги нет в списке.");
+                            }
+                        }
+                        else
+                        {
+                            botClient.SendMessage(chat, "Неверный формат номера задачи.");
+                        }
                         break;
                     case "/exit":
                         botClient.SendMessage(chat, "Завершение работы программы.");

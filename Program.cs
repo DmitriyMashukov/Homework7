@@ -27,8 +27,9 @@ class Program
             var maxTaskLength = ParseAndValidateInt(Console.ReadLine(), 1, 100);
 
             var botClient = new ConsoleBotClient();
-            var userService = new UserService(); 
-            var handler = new UpdateHandler(maxTaskCount, maxTaskLength, userService);
+            var userService = new UserService();
+            var toDoService = new ToDoService(maxTaskCount, maxTaskLength);
+            var handler = new UpdateHandler(userService, toDoService);
             botClient.StartReceiving(handler);
         }
         catch (Exception ex)
