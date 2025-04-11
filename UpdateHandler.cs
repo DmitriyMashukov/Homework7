@@ -37,6 +37,8 @@ namespace MyOtusProject
                 "\n /showtasks - Отображает список всех добавленных книг." +
                 "\n /removetask - Позволяет удалять книги по номеру в списке. Для удаления необходимо написать" +
                 " команду и через пробел указать номер книги, которую хотите удалить." +
+                "\n /completetask - Позволяет отметить книгу как прочитанную по её ID. Для использования напишите" +
+                " команду и через пробел укажите ID книги." +
                 "\n /exit - Команда для завершения работы приложения.");
             botClient.SendMessage(chat, text.ToString());
         }
@@ -128,12 +130,45 @@ namespace MyOtusProject
                             botClient.SendMessage(chat, "Неверный формат номера задачи.");
                         }
                         break;
+                    case string s when s.StartsWith("/completetask "):
+                        if (existingUser == null) return;
+
+                        var taskIdInput = input.Substring("/completetask ".Length).Trim();
+                        if (Guid.TryParse(taskIdInput, out Guid taskId))
+                        {
+                            var allTasks = _toDoService.GetAllByUserId(existingUser.UserId);
+                            ToDoItem taskToComplete = null;
+
+                            foreach (var task in allTasks)
+                            {
+                                if (task.Id == taskId)
+                                {
+                                    taskToComplete = task;
+                                    break;
+                                }
+                            }
+
+                            if (taskToComplete != null)
+                            {
+                                _toDoService.MarkCompleted(taskId);
+                                botClient.SendMessage(chat, $"Книга '{taskToComplete.Name}' отмечена как прочитанная.");
+                            }
+                            else
+                            {
+                                botClient.SendMessage(chat, "Книга с указанным ID не найдена.");
+                            }
+                        }
+                        else
+                        {
+                            botClient.SendMessage(chat, "Неверный формат ID книги. ID должен быть в формате GUID.");
+                        }
+                        break;
                     case "/exit":
                         botClient.SendMessage(chat, "Завершение работы программы.");
                         break;
                     default:
                         botClient.SendMessage(chat, $"Приветствую, {existingUser.TelegramUserName}! Список доступных команд:" +
-                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/exit");
+                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/completetask \n/exit");
                         break;
                 }
             }
