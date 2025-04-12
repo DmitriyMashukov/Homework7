@@ -35,6 +35,7 @@ namespace MyOtusProject
                 "\n /addtask - Позволяет добавить новую книгу в список. Для добавления книги напишите команду" +
                 " и через пробел укажите название книги, имя и фамилию автора и количество страниц." +
                 "\n /showtasks - Отображает список всех добавленных книг." +
+                "\n /showalltasks - Отображает список всех книг (как активных, так и прочитанных) с указанием статуса" +
                 "\n /removetask - Позволяет удалять книги по номеру в списке. Для удаления необходимо написать" +
                 " команду и через пробел указать номер книги, которую хотите удалить." +
                 "\n /completetask - Позволяет отметить книгу как прочитанную по её ID. Для использования напишите" +
@@ -59,6 +60,25 @@ namespace MyOtusProject
                     var task = activeTasks[i];
                     botClient.SendMessage(chat, $"{i + 1}. {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
                 }     
+            }
+        }
+
+        private void ShowAllTasksList(ITelegramBotClient botClient, Chat chat, ToDoUser user)
+        {
+            var allTasks = _toDoService.GetAllByUserId(user.UserId);
+
+            if (allTasks.Count == 0)
+            {
+                botClient.SendMessage(chat, "У вас пока нет добавленных книг.");
+            }
+            else
+            {
+                botClient.SendMessage(chat, "\nСписок всех ваших книг:");
+                foreach (var task in allTasks)
+                {
+                    var state = task.State == ToDoItemState.Active ? "(Active)" : "(Completed)";
+                    botClient.SendMessage(chat, $"{state} {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
+                }
             }
         }
 
@@ -106,6 +126,10 @@ namespace MyOtusProject
                     case "/showtasks":
                         if (existingUser != null)
                             ShowTasksList(botClient, chat, existingUser);
+                        break;
+                    case "/showalltasks":
+                        if (existingUser != null)
+                            ShowAllTasksList(botClient, chat, existingUser);
                         break;
                     case string s when s.StartsWith("/removetask "):
                         if (existingUser == null) return;
@@ -168,7 +192,7 @@ namespace MyOtusProject
                         break;
                     default:
                         botClient.SendMessage(chat, $"Приветствую, {existingUser.TelegramUserName}! Список доступных команд:" +
-                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/removetask \n/completetask \n/exit");
+                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/showalltasks \n/removetask \n/completetask \n/exit");
                         break;
                 }
             }
