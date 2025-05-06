@@ -35,7 +35,7 @@ namespace MyOtusProject
 
             var newTask = new ToDoItem
             {
-                UserId = user.UserId,
+                User = user,
                 Name = name
 
             };
@@ -51,8 +51,8 @@ namespace MyOtusProject
             {
                 if (_tasksForDoing[i].Id == id)
                 {
-                    _tasksForDoing.RemoveAt(i); // Удаляем по индексу
-                    return; // Выходим из метода
+                    _tasksForDoing.RemoveAt(i); 
+                    return; 
                 }
             }
         }
@@ -63,7 +63,7 @@ namespace MyOtusProject
 
             foreach (var task in _tasksForDoing)
             {
-                if (task.UserId == userId && task.State == ToDoItemState.Active)
+                if (task.User.UserId == userId && task.State == ToDoItemState.Active)
                 {
                     result.Add(task);
                 }
@@ -76,7 +76,7 @@ namespace MyOtusProject
             var result = new List<ToDoItem>();
             foreach (var task in _tasksForDoing)
             {
-                if (task.UserId == userId)
+                if (task.User.UserId == userId)
                 {
                     result.Add(task);
                 }
@@ -88,11 +88,11 @@ namespace MyOtusProject
         {
             foreach (var task in _tasksForDoing)
             {
-                if (task.Id == id) // Если нашли задачу с нужным Id
+                if (task.Id == id) 
                 {
                     task.State = ToDoItemState.Completed;
                     task.StateChangedAt = DateTime.UtcNow;
-                    break; // Прерываем цикл (больше искать не нужно)
+                    return; 
                 }
             }
         }
