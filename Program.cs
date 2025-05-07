@@ -28,8 +28,9 @@ class Program
 
             var botClient = new ConsoleBotClient();
             var userRepository = new InMemoryUserRepository();
+            var todoRepository = new InMemoryToDoRepository();
             var userService = new UserService(userRepository);
-            var toDoService = new ToDoService(maxTaskCount, maxTaskLength);
+            var toDoService = new ToDoService(todoRepository, maxTaskCount, maxTaskLength);
             var handler = new UpdateHandler(userService, toDoService);
             botClient.StartReceiving(handler);
         }
