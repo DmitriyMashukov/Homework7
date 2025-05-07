@@ -8,15 +8,15 @@ namespace MyOtusProject
 {
     internal class UserService : IUserService
     {
-        private List<ToDoUser> _users = new List<ToDoUser>(); 
+        private readonly IUserRepository _userRepository;
+
+        public UserService(IUserRepository userRepository)
+        {
+            _userRepository = userRepository;  
+        }
         public ToDoUser? GetUser(long telegramUserId)
         {
-            foreach (var user in _users)
-            {
-                if (user.TelegramUserId == telegramUserId)
-                    return user;
-            }
-            return null;
+            return _userRepository.GetUserByTelegramUserId(telegramUserId);
         }
 
         public ToDoUser RegisterUser(long telegramUserId, string telegramUserName)
@@ -28,7 +28,7 @@ namespace MyOtusProject
                 TelegramUserName = telegramUserName,
                 RegisteredAt = DateTime.UtcNow
             };
-            _users.Add(newUser);
+            _userRepository.Add(newUser);
             return newUser;
         }
     }

@@ -27,7 +27,8 @@ class Program
             var maxTaskLength = ParseAndValidateInt(Console.ReadLine(), 1, 100);
 
             var botClient = new ConsoleBotClient();
-            var userService = new UserService();
+            var userRepository = new InMemoryUserRepository();
+            var userService = new UserService(userRepository);
             var toDoService = new ToDoService(maxTaskCount, maxTaskLength);
             var handler = new UpdateHandler(userService, toDoService);
             botClient.StartReceiving(handler);
