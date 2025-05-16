@@ -31,7 +31,8 @@ class Program
             var todoRepository = new InMemoryToDoRepository();
             var userService = new UserService(userRepository);
             var toDoService = new ToDoService(todoRepository, maxTaskCount, maxTaskLength);
-            var handler = new UpdateHandler(userService, toDoService);
+            var reportService = new ToDoReportService(todoRepository);
+            var handler = new UpdateHandler(userService, toDoService, reportService);
             botClient.StartReceiving(handler);
         }
         catch (Exception ex)

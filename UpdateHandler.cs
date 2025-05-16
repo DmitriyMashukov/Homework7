@@ -12,13 +12,15 @@ namespace MyOtusProject
     internal class UpdateHandler : IUpdateHandler
     {
 
-        private IUserService _userService;
-        private IToDoService _toDoService;
+        private readonly IUserService _userService;
+        private readonly IToDoService _toDoService;
+        private readonly IToDoReportService _reportService;
 
-        public UpdateHandler(IUserService userService, IToDoService toDoService)
+        public UpdateHandler(IUserService userService, IToDoService toDoService, IToDoReportService reportService)
         {
             _userService = userService;
             _toDoService = toDoService;
+            _reportService = reportService;
         }
         private static void ValidateString(string? str)
         {
@@ -40,6 +42,7 @@ namespace MyOtusProject
                 " команду и через пробел указать номер книги, которую хотите удалить." +
                 "\n /completetask - Позволяет отметить книгу как прочитанную по её ID. Для использования напишите" +
                 " команду и через пробел укажите ID книги." +
+                "\n /report - Показывает статистику по прочитанным книгам." +
                 "\n /exit - Команда для завершения работы приложения.");
             botClient.SendMessage(chat, text.ToString());
         }
@@ -187,12 +190,21 @@ namespace MyOtusProject
                             botClient.SendMessage(chat, "Неверный формат ID книги. ID должен быть в формате GUID.");
                         }
                         break;
+                    case "/report":
+                        if (existingUser != null)
+                        {
+                            var stats = _reportService.GetUserStats(existingUser.UserId);
+                            botClient.SendMessage(chat,
+                                $"Статистика по задачам на {stats.generatedAt:dd.MM.yyyy HH:mm:ss}. " +
+                                $"Всего: {stats.total}; Завершенных: {stats.completed}; Активных: {stats.active}");
+                        }
+                        break;
                     case "/exit":
                         botClient.SendMessage(chat, "Завершение работы программы.");
                         break;
                     default:
                         botClient.SendMessage(chat, $"Приветствую, {existingUser.TelegramUserName}! Список доступных команд:" +
-                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/showalltasks \n/removetask \n/completetask \n/exit");
+                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/showalltasks \n/removetask \n/completetask \n/report \n/exit");
                         break;
                 }
             }
