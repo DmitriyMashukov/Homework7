@@ -59,5 +59,10 @@ namespace MyOtusProject
                 _items.Add(item);
             }
         }
+
+        public IReadOnlyList<ToDoItem> Find(Guid userId, Func<ToDoItem, bool> predicate)
+        {
+            return _items.Where(x => x.User.UserId == userId).Where(predicate).ToList().AsReadOnly();
+        }
     }
 }

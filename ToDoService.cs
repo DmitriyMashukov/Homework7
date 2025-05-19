@@ -69,5 +69,10 @@ namespace MyOtusProject
                 _repository.Update(task);
             }
         }
+
+        public IReadOnlyList<ToDoItem> Find(ToDoUser user, string namePrefix)
+        {
+            return _repository.Find(user.UserId, task => task.Name.StartsWith(namePrefix, StringComparison.OrdinalIgnoreCase));
+        }
     }
 }
