@@ -1,4 +1,7 @@
-﻿using Otus.ToDoList.ConsoleBot.Types;
+﻿using MyOtusProject.Project.Core.DataAccess;
+using MyOtusProject.Project.Core.Entities;
+using MyOtusProject.Project.Core.Exceptions;
+using Otus.ToDoList.ConsoleBot.Types;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MyOtusProject
+namespace MyOtusProject.Project.Core.Services
 {
     internal class ToDoService : IToDoService
     {

@@ -1,4 +1,7 @@
-﻿using Otus.ToDoList.ConsoleBot;
+﻿using MyOtusProject.Project.Core.Services;
+using MyOtusProject.Project.Infrastructure.DataAccess;
+using MyOtusProject.Project.TelegramBot;
+using Otus.ToDoList.ConsoleBot;
 using System.Numerics;
 using System.Text;
 

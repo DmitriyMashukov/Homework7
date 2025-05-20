@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MyOtusProject.Project.Core.DataAccess;
+using MyOtusProject.Project.Core.Entities;
 
-namespace MyOtusProject
+namespace MyOtusProject.Project.Core.Services
 {
     internal class ToDoReportService : IToDoReportService
     {
@@ -12,7 +14,7 @@ namespace MyOtusProject
 
         public ToDoReportService(IToDoRepository toDoRepository)
         {
-            _toDoRepository = toDoRepository;      
+            _toDoRepository = toDoRepository;
         }
         public (int total, int completed, int active, DateTime generatedAt) GetUserStats(Guid userId)
         {

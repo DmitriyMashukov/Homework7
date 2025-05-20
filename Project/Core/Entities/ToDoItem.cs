@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MyOtusProject
+namespace MyOtusProject.Project.Core.Entities
 {
     internal class ToDoItem
     {

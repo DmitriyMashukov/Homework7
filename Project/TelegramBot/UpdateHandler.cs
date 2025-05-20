@@ -1,4 +1,7 @@
-﻿using Otus.ToDoList.ConsoleBot;
+﻿using MyOtusProject.Project.Core.Entities;
+using MyOtusProject.Project.Core.Exceptions;
+using MyOtusProject.Project.Core.Services;
+using Otus.ToDoList.ConsoleBot;
 using Otus.ToDoList.ConsoleBot.Types;
 using System;
 using System.Collections.Generic;
@@ -7,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MyOtusProject
+namespace MyOtusProject.Project.TelegramBot
 {
     internal class UpdateHandler : IUpdateHandler
     {
@@ -63,7 +66,7 @@ namespace MyOtusProject
                 {
                     var task = activeTasks[i];
                     botClient.SendMessage(chat, $"{i + 1}. {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
-                }     
+                }
             }
         }
 

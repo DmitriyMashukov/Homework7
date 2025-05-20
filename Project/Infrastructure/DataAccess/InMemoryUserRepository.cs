@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MyOtusProject.Project.Core.DataAccess;
+using MyOtusProject.Project.Core.Entities;
 
-namespace MyOtusProject
+namespace MyOtusProject.Project.Infrastructure.DataAccess
 {
     internal class InMemoryUserRepository : IUserRepository
     {
