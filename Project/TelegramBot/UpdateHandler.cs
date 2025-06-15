@@ -1,4 +1,7 @@
-﻿using Otus.ToDoList.ConsoleBot;
+﻿using MyOtusProject.Project.Core.Entities;
+using MyOtusProject.Project.Core.Exceptions;
+using MyOtusProject.Project.Core.Services;
+using Otus.ToDoList.ConsoleBot;
 using Otus.ToDoList.ConsoleBot.Types;
 using System;
 using System.Collections.Generic;
@@ -7,18 +10,20 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
-namespace MyOtusProject
+namespace MyOtusProject.Project.TelegramBot
 {
     internal class UpdateHandler : IUpdateHandler
     {
 
-        private IUserService _userService;
-        private IToDoService _toDoService;
+        private readonly IUserService _userService;
+        private readonly IToDoService _toDoService;
+        private readonly IToDoReportService _reportService;
 
-        public UpdateHandler(IUserService userService, IToDoService toDoService)
+        public UpdateHandler(IUserService userService, IToDoService toDoService, IToDoReportService reportService)
         {
             _userService = userService;
             _toDoService = toDoService;
+            _reportService = reportService;
         }
         private static void ValidateString(string? str)
         {
@@ -40,6 +45,8 @@ namespace MyOtusProject
                 " команду и через пробел указать номер книги, которую хотите удалить." +
                 "\n /completetask - Позволяет отметить книгу как прочитанную по её ID. Для использования напишите" +
                 " команду и через пробел укажите ID книги." +
+                "\n /report - Показывает статистику по прочитанным книгам." +
+                "\n /find - Позволяет найти книги по первому слову в названии. Напишите команду и через пробел укажите начало названия книги." +
                 "\n /exit - Команда для завершения работы приложения.");
             botClient.SendMessage(chat, text.ToString());
         }
@@ -59,7 +66,7 @@ namespace MyOtusProject
                 {
                     var task = activeTasks[i];
                     botClient.SendMessage(chat, $"{i + 1}. {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
-                }     
+                }
             }
         }
 
@@ -187,12 +194,43 @@ namespace MyOtusProject
                             botClient.SendMessage(chat, "Неверный формат ID книги. ID должен быть в формате GUID.");
                         }
                         break;
+                    case "/report":
+                        if (existingUser != null)
+                        {
+                            var stats = _reportService.GetUserStats(existingUser.UserId);
+                            botClient.SendMessage(chat,
+                                $"Статистика по задачам на {stats.generatedAt:dd.MM.yyyy HH:mm:ss}. " +
+                                $"Всего: {stats.total}; Завершенных: {stats.completed}; Активных: {stats.active}");
+                        }
+                        break;
+                    case string s when s.StartsWith("/find "):
+                        if (existingUser == null) return;
+
+                        var namePrefix = input.Substring("/find ".Length).Trim();
+                        ValidateString(namePrefix);
+
+                        var foundTasks = _toDoService.Find(existingUser, namePrefix);
+                        if (foundTasks.Count == 0)
+                        {
+                            botClient.SendMessage(chat, $"Не найдено книг, начинающихся с '{namePrefix}'.");
+                        }
+                        else
+                        {
+                            botClient.SendMessage(chat, $"\nНайденные книги, начинающиеся с '{namePrefix}':");
+                            foreach (var task in foundTasks)
+                            {
+                                var state = task.State == ToDoItemState.Active ? "(Active)" : "(Completed)";
+                                botClient.SendMessage(chat, $"{state} {task.Name} - {task.CreatedAt:dd.MM.yyyy HH:mm:ss} - {task.Id}");
+                            }
+                        }
+                        break;
                     case "/exit":
                         botClient.SendMessage(chat, "Завершение работы программы.");
                         break;
                     default:
                         botClient.SendMessage(chat, $"Приветствую, {existingUser.TelegramUserName}! Список доступных команд:" +
-                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/showalltasks \n/removetask \n/completetask \n/exit");
+                                "\n/start \n/help \n/info \n/addtask \n/showtasks \n/showalltasks \n/removetask " +
+                                "\n/completetask \n/report \n/find \n/exit");
                         break;
                 }
             }

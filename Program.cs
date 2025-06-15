@@ -1,4 +1,7 @@
-﻿using Otus.ToDoList.ConsoleBot;
+﻿using MyOtusProject.Project.Core.Services;
+using MyOtusProject.Project.Infrastructure.DataAccess;
+using MyOtusProject.Project.TelegramBot;
+using Otus.ToDoList.ConsoleBot;
 using System.Numerics;
 using System.Text;
 
@@ -27,9 +30,12 @@ class Program
             var maxTaskLength = ParseAndValidateInt(Console.ReadLine(), 1, 100);
 
             var botClient = new ConsoleBotClient();
-            var userService = new UserService();
-            var toDoService = new ToDoService(maxTaskCount, maxTaskLength);
-            var handler = new UpdateHandler(userService, toDoService);
+            var userRepository = new InMemoryUserRepository();
+            var todoRepository = new InMemoryToDoRepository();
+            var userService = new UserService(userRepository);
+            var toDoService = new ToDoService(todoRepository, maxTaskCount, maxTaskLength);
+            var reportService = new ToDoReportService(todoRepository);
+            var handler = new UpdateHandler(userService, toDoService, reportService);
             botClient.StartReceiving(handler);
         }
         catch (Exception ex)
